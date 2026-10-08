@@ -1,0 +1,64 @@
+{
+  "author": "keatr0n",
+  "dependencies": {
+    "@rebble/clay": "^1.1.0"
+  },
+  "keywords": [
+    "pebble-app"
+  ],
+  "name": "pebble-biomon",
+  "pebble": {
+    "capabilities": [
+      "configurable",
+      "health"
+    ],
+    "displayName": "Biomon",
+    "enableMultiJS": true,
+    "messageKeys": [
+      "Theme",
+      "TrackWater",
+      "TrackFood",
+      "Sex",
+      "Age",
+      "WeightKg",
+      "HeightCm",
+      "VolumeUnit",
+      "EnergyUnit",
+      "NagInterval",
+      "Vibrate",
+      "QuietStart",
+      "QuietEnd",
+      "HrvInterval",
+      "ResetBaseline"
+    ],
+    "projectType": "native",
+    "resources": {
+      "media": [
+        {
+          "characterRegex": "[0-9:]",
+          "file": "fonts/ChakraPetch-SemiBold.ttf",
+          "name": "FONT_CHAKRA_TIME_52",
+          "targetPlatforms": null,
+          "type": "font"
+        },
+        {
+          "characterRegex": "[A-Z0-9 :/.%!+-]",
+          "file": "fonts/ChakraPetch-SemiBold.ttf",
+          "name": "FONT_CHAKRA_LABEL_16",
+          "targetPlatforms": null,
+          "type": "font"
+        }
+      ]
+    },
+    "sdkVersion": "3",
+    "targetPlatforms": [
+      "emery",
+      "gabbro"
+    ],
+    "uuid": "93c46bc3-10de-4082-92da-1c01c42be5bf",
+    "watchapp": {
+      "watchface": true
+    }
+  },
+  "version": "1.0.0"
+}

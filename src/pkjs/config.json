@@ -1,0 +1,257 @@
+[
+  {
+    "type": "heading",
+    "defaultValue": "Biomon"
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Look"
+      },
+      {
+        "type": "select",
+        "messageKey": "Theme",
+        "label": "HUD style",
+        "defaultValue": "0",
+        "options": [
+          {
+            "label": "Subnautica",
+            "value": "0"
+          },
+          {
+            "label": "Rust",
+            "value": "1"
+          },
+          {
+            "label": "Cyberpunk 2077",
+            "value": "2"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "About you"
+      },
+      {
+        "type": "text",
+        "defaultValue": "Used to estimate how much water and energy you need in a day, which sets how much of a meter one cup or one meal is worth: water from weight, energy from the Mifflin-St Jeor equation at a lightly active level."
+      },
+      {
+        "type": "select",
+        "messageKey": "Sex",
+        "label": "Sex",
+        "defaultValue": "2",
+        "options": [
+          {
+            "label": "Male",
+            "value": "0"
+          },
+          {
+            "label": "Female",
+            "value": "1"
+          },
+          {
+            "label": "Other / rather not say",
+            "value": "2"
+          }
+        ]
+      },
+      {
+        "type": "input",
+        "messageKey": "Age",
+        "label": "Age",
+        "defaultValue": "35",
+        "attributes": {
+          "type": "number",
+          "min": 10,
+          "max": 110
+        }
+      },
+      {
+        "type": "input",
+        "messageKey": "WeightKg",
+        "label": "Weight (kg)",
+        "defaultValue": "75",
+        "attributes": {
+          "type": "number",
+          "min": 25,
+          "max": 300
+        }
+      },
+      {
+        "type": "input",
+        "messageKey": "HeightCm",
+        "label": "Height (cm)",
+        "defaultValue": "172",
+        "attributes": {
+          "type": "number",
+          "min": 100,
+          "max": 250
+        }
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Water and food"
+      },
+      {
+        "type": "text",
+        "defaultValue": "Each meter drains while you're awake: quickly down to 50%, where the watch buzzes, then much more slowly. To log a drink or a meal, shake your wrist to open the picker, shake again to step through the amounts, then hold still for a few seconds to log the one showing. How far a cup or a meal refills the bar comes from the details under About you."
+      },
+      {
+        "type": "toggle",
+        "messageKey": "TrackWater",
+        "label": "Track water",
+        "defaultValue": true
+      },
+      {
+        "type": "toggle",
+        "messageKey": "TrackFood",
+        "label": "Track food",
+        "defaultValue": true
+      },
+      {
+        "type": "slider",
+        "messageKey": "NagInterval",
+        "label": "Repeat a reminder every (minutes)",
+        "description": "While a meter stays under 50%. 0 reminds once and then stays quiet.",
+        "defaultValue": 20,
+        "min": 0,
+        "max": 60,
+        "step": 5
+      },
+      {
+        "type": "toggle",
+        "messageKey": "Vibrate",
+        "label": "Vibrate on reminders",
+        "defaultValue": true
+      },
+      {
+        "type": "select",
+        "messageKey": "VolumeUnit",
+        "label": "Show water in",
+        "defaultValue": "0",
+        "options": [
+          {
+            "label": "Millilitres",
+            "value": "0"
+          },
+          {
+            "label": "Fluid ounces",
+            "value": "1"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "messageKey": "EnergyUnit",
+        "label": "Show food in",
+        "defaultValue": "0",
+        "options": [
+          {
+            "label": "Kilojoules",
+            "value": "0"
+          },
+          {
+            "label": "Calories",
+            "value": "1"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Quiet hours"
+      },
+      {
+        "type": "text",
+        "defaultValue": "No reminders between these hours, and the meters stop draining. The day's totals in the log panel reset when quiet hours end. Set both to the same hour to turn quiet hours off."
+      },
+      {
+        "type": "slider",
+        "messageKey": "QuietStart",
+        "label": "From (hour, 24h)",
+        "defaultValue": 22,
+        "min": 0,
+        "max": 23,
+        "step": 1
+      },
+      {
+        "type": "slider",
+        "messageKey": "QuietEnd",
+        "label": "Until (hour, 24h)",
+        "defaultValue": 7,
+        "min": 0,
+        "max": 23,
+        "step": 1
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Stress"
+      },
+      {
+        "type": "text",
+        "defaultValue": "Stress is read from heart rate variability, compared against a baseline the watch learns for you. It needs about 20 resting readings before it shows a score and keeps refining after that."
+      },
+      {
+        "type": "select",
+        "messageKey": "HrvInterval",
+        "label": "Measure HRV every",
+        "description": "More often reacts faster but costs battery.",
+        "defaultValue": "15",
+        "options": [
+          {
+            "label": "5 minutes",
+            "value": "5"
+          },
+          {
+            "label": "10 minutes",
+            "value": "10"
+          },
+          {
+            "label": "15 minutes",
+            "value": "15"
+          },
+          {
+            "label": "30 minutes",
+            "value": "30"
+          },
+          {
+            "label": "60 minutes",
+            "value": "60"
+          }
+        ]
+      },
+      {
+        "type": "toggle",
+        "messageKey": "ResetBaseline",
+        "label": "Reset learned baseline on save",
+        "defaultValue": false
+      }
+    ]
+  },
+  {
+    "type": "submit",
+    "defaultValue": "Save"
+  }
+]
