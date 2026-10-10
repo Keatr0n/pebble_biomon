@@ -14,6 +14,9 @@
 #if defined(PBL_HEALTH) && defined(_PBL_API_EXISTS_health_service_set_hrv_sample_period)
 #define BIOMON_HAS_HRV 1
 #endif
+#if defined(_PBL_API_EXISTS_touch_service_subscribe)
+#define BIOMON_HAS_TOUCH 1
+#endif
 
 #define PERSIST_KEY_SETTINGS 1
 #define PERSIST_KEY_HRV 3

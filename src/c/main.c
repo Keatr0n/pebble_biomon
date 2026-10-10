@@ -105,16 +105,23 @@ static void prv_click_handler(ClickRecognizerRef recognizer, void *context) {
   if (!needs_button(click_recognizer_get_button_id(recognizer))) window_stack_pop(true);
 }
 
+static void prv_long_select_handler(ClickRecognizerRef recognizer, void *context) {
+  if (g_bio.panel == NEED_NONE) settings_menu_show();
+}
+
 static void prv_click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_UP, prv_click_handler);
   window_single_click_subscribe(BUTTON_ID_SELECT, prv_click_handler);
   window_single_click_subscribe(BUTTON_ID_DOWN, prv_click_handler);
   window_single_click_subscribe(BUTTON_ID_BACK, prv_click_handler);
+  window_long_click_subscribe(BUTTON_ID_SELECT, 0, prv_long_select_handler, NULL);
 }
 
 #if defined(BIOMON_HAS_TOUCH)
 static void prv_touch_handler(const TouchEvent *event, void *context) {
   static GPoint s_down;
+  // Touches keep arriving while the settings menu covers the HUD.
+  if (window_stack_get_top_window() != s_window) return;
 
   if (event->type == TouchEvent_Touchdown) {
     s_down = GPoint(event->x, event->y);
@@ -125,14 +132,6 @@ static void prv_touch_handler(const TouchEvent *event, void *context) {
   }
 }
 #endif
-
-static void prv_inbox_received(DictionaryIterator *iter, void *context) {
-  if (!settings_handle_message(iter)) return;
-  // Tracking switches and body details may have changed, so recompute before repainting.
-  hrv_refresh();
-  needs_tick(time(NULL), false);
-  ui_redraw();
-}
 
 static void prv_window_load(Window *window) {
   Layer *root = window_get_root_layer(window);
@@ -179,9 +178,6 @@ static void prv_init(void) {
 #if defined(BIOMON_HAS_TOUCH)
   touch_service_subscribe(prv_touch_handler, NULL);
 #endif
-
-  app_message_register_inbox_received(prv_inbox_received);
-  app_message_open(256, 64);
 
   // If the worker opened the app to deliver a reminder, show it and leave again after.
   needs_show_pending_alert(launch_reason() == APP_LAUNCH_WORKER);

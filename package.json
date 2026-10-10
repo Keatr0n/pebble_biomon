@@ -1,39 +1,24 @@
 {
   "author": "keatr0n",
-  "dependencies": {
-    "@rebble/clay": "^1.1.0"
-  },
   "keywords": [
     "pebble-app"
   ],
   "name": "pebble-biomon",
   "pebble": {
     "capabilities": [
-      "configurable",
       "health"
     ],
     "displayName": "Biomon",
-    "enableMultiJS": true,
-    "messageKeys": [
-      "Theme",
-      "TrackWater",
-      "TrackFood",
-      "Sex",
-      "Age",
-      "WeightKg",
-      "HeightCm",
-      "VolumeUnit",
-      "EnergyUnit",
-      "NagInterval",
-      "Vibrate",
-      "QuietStart",
-      "QuietEnd",
-      "HrvInterval",
-      "ResetBaseline"
-    ],
     "projectType": "native",
     "resources": {
       "media": [
+        {
+          "file": "images/menu_icon.png",
+          "menuIcon": true,
+          "name": "MENU_ICON",
+          "targetPlatforms": null,
+          "type": "bitmap"
+        },
         {
           "characterRegex": "[0-9:]",
           "file": "fonts/ChakraPetch-SemiBold.ttf",

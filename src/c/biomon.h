@@ -51,7 +51,11 @@ void ui_redraw(void);
 
 // settings.c
 void settings_load(void);
-bool settings_handle_message(DictionaryIterator *iter);
+void settings_save(void);
+
+// settings_menu.c
+void settings_menu_show(void);
+void settings_menu_hide(void);
 
 // vitals.c
 void vitals_init(void);

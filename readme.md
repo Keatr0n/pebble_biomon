@@ -11,6 +11,16 @@ Biomon is a toy, not a medical device. Its heart rate and HRV come from a wrist 
 - Stress, scored against your own HRV baseline
 - Water and food meters that drain through the day, refill when you log a drink or meal, and buzz you when they get low
 
+## Settings
+
+Everything is set on the watch; there's no phone settings page. Hold Select on the main screen to open the menu. Select flips a switch or steps through a list, and for a number it opens a picker where Up and Down change it, Select saves and Back cancels. Changes take effect as you make them.
+
+- Look: the HUD style
+- About you: sex, age, weight (kg) and height (cm), used to size the water and food meters
+- Water and food: whether each is tracked, how often a reminder repeats (0 for once only), vibration, and ml or fl oz, kJ or kcal
+- Quiet hours: the hours they run from and until; the same hour for both turns them off
+- Stress and energy: how often HRV is measured, and Reset baselines, which forgets what the watch has learned about your stress and energy. It asks for a second press first.
+
 ## Water and food
 
 Both are game-style meters that drain while you're awake and get topped up when you log a drink or a meal.
@@ -19,7 +29,7 @@ The drain is uneven on purpose. Water falls from full to 50% in about two hours,
 
 The meters are timers, not measurements: they know what you've logged and how long ago, and nothing else. A low meter means it's been a while, or that you forgot to log.
 
-To log something, tap the meter, or press Up for water, Down for food, or Select for whichever is emptier. A panel opens where Up and Down (or the on-screen + and -) change the amount: water in cups (250 ml / 8.5 fl oz), food in steps of 500 kJ or 100 kcal. Select or Confirm logs it and Back cancels. Stepping below zero takes an entry back if you logged one by mistake. The panel also shows your running total for the day against your estimated requirement, marked with a ~ because it is an estimate. The requirement is left off until you've saved your details in the settings, since until then it describes the defaults rather than you.
+To log something, tap the meter, or press Up for water, Down for food, or Select for whichever is emptier once one has dropped below 50%. A panel opens where Up and Down (or the on-screen + and -) change the amount: water in cups (250 ml / 8.5 fl oz), food in steps of 500 kJ or 100 kcal. Select or Confirm logs it and Back cancels. Stepping below zero takes an entry back if you logged one by mistake. The panel also shows your running total for the day against your estimated requirement, marked with a ~ because it is an estimate. The requirement is left off until you've set your details in the settings, since until then it describes the defaults rather than you.
 
 A cup or a meal always refills the same slice of bar. The size of that slice comes from the sex, age, weight and height in the settings:
 

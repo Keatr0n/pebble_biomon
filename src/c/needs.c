@@ -132,6 +132,8 @@ static void prv_alert(Need need) {
       });
     }
   }
+  // The panel is drawn on the HUD, so the settings menu can't be left sitting on top of it.
+  settings_menu_hide();
   // Don't yank away a panel someone is already halfway through using.
   if (g_bio.panel == NEED_NONE) prv_open_panel(need, true);
 }
@@ -213,9 +215,13 @@ bool needs_button(ButtonId button) {
       case BUTTON_ID_UP: prv_open_panel(NEED_WATER, false); return true;
       case BUTTON_ID_DOWN: prv_open_panel(NEED_FOOD, false); return true;
       case BUTTON_ID_SELECT: {
-        bool food_first = !g_settings.track_water ||
-                          (g_settings.track_food && g_bio.food < g_bio.water);
-        prv_open_panel(food_first ? NEED_FOOD : NEED_WATER, false);
+        bool water_low = prv_tracked(NEED_WATER) && g_bio.water < NEED_PROMPT_PCT;
+        bool food_low = prv_tracked(NEED_FOOD) && g_bio.food < NEED_PROMPT_PCT;
+        if (food_low && (!water_low || g_bio.food < g_bio.water)) {
+          prv_open_panel(NEED_FOOD, false);
+        } else if (water_low) {
+          prv_open_panel(NEED_WATER, false);
+        }
         return true;
       }
       default: return false;

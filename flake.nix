@@ -19,10 +19,6 @@
           ];
 
           shellHook = ''
-            if [ -f package.json ] && [ ! -d node_modules ]; then
-              echo "Installing npm dependencies..."
-              npm install
-            fi
             export PEBBLE_EMULATOR='emery'
             echo "Pebble dev environment loaded. Use 'pebble build' to compile."
           '';
