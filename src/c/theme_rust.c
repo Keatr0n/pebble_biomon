@@ -45,7 +45,7 @@ static const RustLayout LAYOUT = {
 #endif
 
 static void prv_status(GContext *ctx) {
-  static char s_value[8];
+  static char s_value[12];
   const char *label = "COMFORT";
   GColor color = RUST_GOOD;
   s_value[0] = '\0';
@@ -66,6 +66,20 @@ static void prv_status(GContext *ctx) {
       color = RUST_BAD;
       snprintf(s_value, sizeof(s_value), "%d", g_bio.stress);
       break;
+    case STATUS_DRAINED:
+      label = "EXHAUSTED";
+      color = RUST_BAD;
+      snprintf(s_value, sizeof(s_value), "%d%%", g_bio.energy);
+      break;
+    case STATUS_WORN_DOWN:
+      label = "WORN DOWN";
+      color = RUST_PROMPT;
+      if (g_bio.stress >= 0) snprintf(s_value, sizeof(s_value), "%d", g_bio.stress);
+      break;
+    case STATUS_NO_DATA:
+      label = "NO SIGNAL";
+      color = RUST_PANEL;
+      break;
     case STATUS_CALIBRATING:
       label = "CALIBRATING";
       color = RUST_PANEL;
@@ -79,7 +93,7 @@ static void prv_status(GContext *ctx) {
         label = "STABLE";
         color = RUST_PANEL;
       }
-      if (g_bio.stress >= 0) snprintf(s_value, sizeof(s_value), "%d%%", bio_vitality());
+      if (g_bio.stress >= 0) snprintf(s_value, sizeof(s_value), "%d", g_bio.stress);
       break;
   }
 

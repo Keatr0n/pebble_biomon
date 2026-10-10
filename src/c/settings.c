@@ -1,33 +1,9 @@
 #include "biomon.h"
 
-#define PERSIST_KEY_SETTINGS 1
-
 Settings g_settings;
 
-static void prv_defaults(void) {
-  g_settings = (Settings) {
-    .theme = THEME_SUBNAUTICA,
-    .track_water = true,
-    .track_food = true,
-    .vibrate = true,
-    .quiet_start = 22,
-    .quiet_end = 7,
-    .hrv_interval_min = 15,
-    .nag_min = 20,
-    .sex = SEX_OTHER,
-    .age = 35,
-    .weight_kg = 75,
-    .height_cm = 172
-  };
-}
-
 void settings_load(void) {
-  prv_defaults();
-  Settings stored;
-  // A size mismatch means the struct changed shape since it was written.
-  if (persist_read_data(PERSIST_KEY_SETTINGS, &stored, sizeof(stored)) == (int)sizeof(stored)) {
-    g_settings = stored;
-  }
+  settings_core_load(&g_settings);
 }
 
 // Clay sends selects as strings and everything else as integers of varying width.
@@ -91,18 +67,22 @@ bool settings_handle_message(DictionaryIterator *iter) {
   }
   if (prv_read(iter, MESSAGE_KEY_Sex, &value)) {
     g_settings.sex = (uint8_t)prv_clamp(value, SEX_MALE, SEX_OTHER);
+    g_settings.profile_set = true;
     changed = true;
   }
   if (prv_read(iter, MESSAGE_KEY_Age, &value)) {
     g_settings.age = (uint8_t)prv_clamp(value, 10, 110);
+    g_settings.profile_set = true;
     changed = true;
   }
   if (prv_read(iter, MESSAGE_KEY_WeightKg, &value)) {
     g_settings.weight_kg = (uint16_t)prv_clamp(value, 25, 300);
+    g_settings.profile_set = true;
     changed = true;
   }
   if (prv_read(iter, MESSAGE_KEY_HeightCm, &value)) {
     g_settings.height_cm = (uint16_t)prv_clamp(value, 100, 250);
+    g_settings.profile_set = true;
     changed = true;
   }
   if (prv_read(iter, MESSAGE_KEY_VolumeUnit, &value)) {

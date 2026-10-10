@@ -1,4 +1,6 @@
 #include "biomon.h"
+#include "energy_core.h"
+#include "hrv_core.h"
 
 Bio g_bio;
 GFont g_font_chakra_time;
@@ -20,6 +22,9 @@ static void prv_apply_demo(void) {
   g_bio.hr = bad ? 104 : 64;
   g_bio.hrv = bad ? 19 : 52;
   g_bio.stress = bad ? 84 : 18;
+  g_bio.stress_high = bad;
+  g_bio.worn_down = false;
+  g_bio.energy = bad ? 14 : 78;
   g_bio.calibrating = false;
   g_bio.water = bad ? 8 : 72;
   g_bio.food = bad ? 31 : 61;
@@ -66,9 +71,28 @@ static void prv_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   time_t now = time(NULL);
   prv_update_clock(tick_time);
   vitals_tick();
-  hrv_tick(now);
-  needs_tick(now);
+
+  // The worker normally does the measuring and the reminding. If it isn't running -
+  // another app's worker has the slot, say - the app covers for it while it's open.
+  bool worker_running = app_worker_is_running();
+  if (!worker_running) {
+    hrv_core_tick(now, &g_settings);
+    HrvStore hrv;
+    hrv_core_load(&hrv);
+    energy_core_tick(now, &g_settings, hrv_core_stress(&hrv, &g_settings, now));
+  }
+  hrv_refresh();
+  needs_tick(now, !worker_running);
   ui_redraw();
+}
+
+static void prv_worker_message_handler(uint16_t type, AppWorkerMessage *data) {
+  if (type == WORKER_MSG_BODY) {
+    hrv_refresh();
+    ui_redraw();
+  } else if (type == WORKER_MSG_ALERT) {
+    needs_show_pending_alert(false);
+  }
 }
 
 static void prv_battery_handler(BatteryChargeState state) {
@@ -77,8 +101,15 @@ static void prv_battery_handler(BatteryChargeState state) {
   ui_redraw();
 }
 
-static void prv_shake_handler(AccelAxisType axis, int32_t direction) {
-  needs_shake();
+static void prv_click_handler(ClickRecognizerRef recognizer, void *context) {
+  if (!needs_button(click_recognizer_get_button_id(recognizer))) window_stack_pop(true);
+}
+
+static void prv_click_config_provider(void *context) {
+  window_single_click_subscribe(BUTTON_ID_UP, prv_click_handler);
+  window_single_click_subscribe(BUTTON_ID_SELECT, prv_click_handler);
+  window_single_click_subscribe(BUTTON_ID_DOWN, prv_click_handler);
+  window_single_click_subscribe(BUTTON_ID_BACK, prv_click_handler);
 }
 
 #if defined(BIOMON_HAS_TOUCH)
@@ -97,8 +128,9 @@ static void prv_touch_handler(const TouchEvent *event, void *context) {
 
 static void prv_inbox_received(DictionaryIterator *iter, void *context) {
   if (!settings_handle_message(iter)) return;
-  // Intervals and tracking switches may have changed, so recompute before repainting.
-  needs_tick(time(NULL));
+  // Tracking switches and body details may have changed, so recompute before repainting.
+  hrv_refresh();
+  needs_tick(time(NULL), false);
   ui_redraw();
 }
 
@@ -127,11 +159,15 @@ static void prv_init(void) {
   prv_update_clock(localtime(&now));
   prv_battery_handler(battery_state_service_peek());
   vitals_init();
-  hrv_init();
+  hrv_refresh();
   needs_init();
+  // Asking again when it's already running is harmless.
+  app_worker_launch();
+  app_worker_message_subscribe(prv_worker_message_handler);
 
   s_window = window_create();
   window_set_background_color(s_window, GColorBlack);
+  window_set_click_config_provider(s_window, prv_click_config_provider);
   window_set_window_handlers(s_window, (WindowHandlers) {
     .load = prv_window_load,
     .unload = prv_window_unload
@@ -141,24 +177,22 @@ static void prv_init(void) {
   tick_timer_service_subscribe(MINUTE_UNIT, prv_tick_handler);
   battery_state_service_subscribe(prv_battery_handler);
 #if defined(BIOMON_HAS_TOUCH)
-  // PebbleOS currently ignores this for watchfaces (touch is reserved for watchapps), so
-  // shaking is the input that actually works. The tap path is kept for firmware that
-  // lifts the restriction.
   touch_service_subscribe(prv_touch_handler, NULL);
 #endif
-  accel_tap_service_subscribe(prv_shake_handler);
 
   app_message_register_inbox_received(prv_inbox_received);
   app_message_open(256, 64);
 
+  // If the worker opened the app to deliver a reminder, show it and leave again after.
+  needs_show_pending_alert(launch_reason() == APP_LAUNCH_WORKER);
   ui_redraw();
 }
 
 static void prv_deinit(void) {
   needs_deinit();
-  hrv_deinit();
+  hrv_core_stop();
+  app_worker_message_unsubscribe();
   vitals_deinit();
-  accel_tap_service_unsubscribe();
 #if defined(BIOMON_HAS_TOUCH)
   touch_service_unsubscribe();
 #endif

@@ -88,6 +88,12 @@ static void prv_status(GContext *ctx) {
       text = g_bio.food < NEED_CRITICAL_PCT ? "NUTRIENTS DEPLETED" : "NUTRIENTS LOW";
       break;
     case STATUS_STRESS: text = "STRESS SPIKE"; break;
+    case STATUS_DRAINED: text = "RESERVES DEPLETED"; break;
+    case STATUS_WORN_DOWN: text = "CHRONIC OVERLOAD"; break;
+    case STATUS_NO_DATA:
+      text = "BIOSENSOR OFFLINE";
+      alarm = false;
+      break;
     case STATUS_CALIBRATING:
       snprintf(s_calibrating, sizeof(s_calibrating), "SYNCING BASELINE %d%%", g_bio.calib_pct);
       text = s_calibrating;

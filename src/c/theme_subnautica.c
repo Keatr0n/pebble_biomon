@@ -75,6 +75,11 @@ static const char *prv_status_text(GColor *color) {
     case STATUS_WATER: return "SEEK FLUID INTAKE";
     case STATUS_FOOD: return "SEEK CALORIC INTAKE";
     case STATUS_STRESS: return "ELEVATED STRESS DETECTED";
+    case STATUS_DRAINED: return "REST REQUIRED";
+    case STATUS_WORN_DOWN: return "CHRONIC STRESS DETECTED";
+    case STATUS_NO_DATA:
+      *color = SUB_LABEL;
+      return "NO BIOSIGNAL DETECTED";
     case STATUS_CALIBRATING:
       *color = SUB_ACCENT;
       snprintf(s_calibrating, sizeof(s_calibrating), "LEARNING BASELINE %d%%", g_bio.calib_pct);

@@ -1,68 +1,21 @@
 #pragma once
 
-#include <pebble.h>
+#include "common.h"
 
 #define HR_HIST_LEN 32
-#define NEED_PROMPT_PCT 50    // Below this a meter asks to be topped up
-#define NEED_CRITICAL_PCT 25  // Below this it's drawn as an emergency
-#define STRESS_HIGH 75
 #define STRESS_ELEVATED 50
-#define STRESS_NORMAL 25
 
-// The HRV API landed in SDK 4.32; older SDKs still build, they just never report stress.
-// Testing the symbol pebble_sdk_version.h generates, rather than going through the
-// PBL_API_EXISTS() wrapper, because the wrapper expands to defined() inside an #if.
-#if defined(PBL_HEALTH) && defined(_PBL_API_EXISTS_health_service_set_hrv_sample_period)
-#define BIOMON_HAS_HRV 1
-#endif
-#if defined(_PBL_API_EXISTS_touch_service_subscribe)
-#define BIOMON_HAS_TOUCH 1
-#endif
-
-typedef enum {
-  THEME_SUBNAUTICA = 0,
-  THEME_RUST,
-  THEME_CYBERPUNK,
-  THEME_COUNT
-} Theme;
-
-typedef enum {
-  NEED_NONE = 0,
-  NEED_WATER,
-  NEED_FOOD
-} Need;
-
-// What the face's one line of status text should be about, most urgent last.
+// What the HUD's one line of status text should be about, most urgent last.
 typedef enum {
   STATUS_OK = 0,
+  STATUS_NO_DATA,     // Nothing is being measured, so there's nothing to call normal
   STATUS_CALIBRATING,
+  STATUS_WORN_DOWN,   // HRV has been sinking for weeks, whatever today's score says
+  STATUS_DRAINED,
   STATUS_STRESS,
   STATUS_FOOD,
   STATUS_WATER
 } Status;
-
-typedef enum {
-  SEX_MALE = 0,
-  SEX_FEMALE,
-  SEX_OTHER
-} Sex;
-
-typedef struct {
-  uint8_t theme;
-  bool track_water;
-  bool track_food;
-  bool vibrate;
-  uint8_t quiet_start;       // Hour of day; reminders and meter drain pause until quiet_end
-  uint8_t quiet_end;
-  uint8_t hrv_interval_min;
-  uint8_t nag_min;           // 0 = remind once only
-  uint8_t sex;
-  uint8_t age;
-  uint16_t weight_kg;
-  uint16_t height_cm;
-  bool volume_floz;          // Show fl oz rather than ml
-  bool energy_kcal;          // Show kcal rather than kJ
-} Settings;
 
 // Everything the themes draw. A value of -1 means "nothing to show" for that field.
 typedef struct {
@@ -71,6 +24,9 @@ typedef struct {
   int hr;
   int hrv;          // RMSSD in ms
   int stress;       // 0-100
+  bool stress_high; // High for long enough to be worth an alert
+  bool worn_down;
+  int energy;       // 0-100, drawn as the HUD's health bar
   int calib_pct;    // How far the HRV baseline is from being usable
   bool calibrating;
   int water;        // 0-100
@@ -80,7 +36,6 @@ typedef struct {
   int battery;
   bool charging;
   Need panel;       // Which meter the log panel is open for
-  bool panel_shake; // The panel is being driven by wrist shakes rather than taps
   int panel_count;  // Cups or food portions it's about to log; negative takes them back
   uint8_t hr_hist[HR_HIST_LEN];
   int hr_hist_len;
@@ -102,22 +57,20 @@ bool settings_handle_message(DictionaryIterator *iter);
 void vitals_init(void);
 void vitals_deinit(void);
 void vitals_tick(void);
-bool vitals_is_asleep(void);
-bool vitals_is_moving(void);
 
 // hrv.c
-void hrv_init(void);
-void hrv_deinit(void);
-void hrv_tick(time_t now);
-void hrv_on_event(void);
+void hrv_refresh(void);
 void hrv_reset_baseline(void);
 
 // needs.c
 void needs_init(void);
 void needs_deinit(void);
-void needs_tick(time_t now);
+// own_reminders: check for reminders here, because no worker is running to do it.
+void needs_tick(time_t now, bool own_reminders);
+void needs_show_pending_alert(bool exit_when_done);
 void needs_tap(GPoint point);
-void needs_shake(void);
+// Returns false if the press wasn't used, so Back can fall through to leaving the app.
+bool needs_button(ButtonId button);
 void needs_panel_draw(GContext *ctx, GRect bounds);
 
 // draw.c

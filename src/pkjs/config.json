@@ -4,6 +4,10 @@
     "defaultValue": "Biomon"
   },
   {
+    "type": "text",
+    "defaultValue": "Biomon is a toy, not a medical device. Stress, energy, water and food are estimates dressed up as a game HUD. Don't use them to make decisions about your health."
+  },
+  {
     "type": "section",
     "items": [
       {
@@ -41,7 +45,7 @@
       },
       {
         "type": "text",
-        "defaultValue": "Used to estimate how much water and energy you need in a day, which sets how much of a meter one cup or one meal is worth: water from weight, energy from the Mifflin-St Jeor equation at a lightly active level."
+        "defaultValue": "Used to estimate how much water and energy you need in a day, which sets how much of a meter one cup or one meal is worth: water from weight (between 1.5 and 3.5 litres), energy from the Mifflin-St Jeor equation plus the activity your watch has counted. The log panel shows these estimates once you've saved this page."
       },
       {
         "type": "select",
@@ -107,7 +111,7 @@
       },
       {
         "type": "text",
-        "defaultValue": "Each meter drains while you're awake: quickly down to 50%, where the watch buzzes, then much more slowly. To log a drink or a meal, shake your wrist to open the picker, shake again to step through the amounts, then hold still for a few seconds to log the one showing. How far a cup or a meal refills the bar comes from the details under About you."
+        "defaultValue": "Each meter drains while you're awake: quickly down to 50%, where the watch buzzes and opens Biomon, then much more slowly. To log a drink or a meal, tap its meter, or press Up for water and Down for food. Up and Down then change the amount, Select logs it and Back cancels. How far a cup or a meal refills the bar comes from the details under About you. The meters only know what you log, and reminders stop for the day once you've logged your estimated requirement."
       },
       {
         "type": "toggle",
@@ -207,11 +211,11 @@
     "items": [
       {
         "type": "heading",
-        "defaultValue": "Stress"
+        "defaultValue": "Stress and energy"
       },
       {
         "type": "text",
-        "defaultValue": "Stress is read from heart rate variability, compared against a baseline the watch learns for you. It needs about 20 resting readings before it shows a score and keeps refining after that."
+        "defaultValue": "Stress is estimated from heart rate variability, compared against a baseline the watch learns for you. It needs at least 20 resting readings over two days before it shows a score. Low variability isn't always stress: coffee, alcohol, a meal or a cold do it too. The health bar is your energy: it recharges while you sleep and drains with activity and stress, and a run of short nights stops it recharging all the way. Wear the watch to bed, and after three nights it starts judging each night against your usual."
       },
       {
         "type": "select",
@@ -245,7 +249,7 @@
       {
         "type": "toggle",
         "messageKey": "ResetBaseline",
-        "label": "Reset learned baseline on save",
+        "label": "Reset learned baselines on save",
         "defaultValue": false
       }
     ]

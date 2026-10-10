@@ -1,4 +1,5 @@
 #include "biomon.h"
+#include "energy.h"
 
 #define SPARK_MIN_RANGE_BPM 12  // Keeps a steady pulse from being stretched into mountains
 
@@ -79,14 +80,17 @@ Status bio_status(void) {
   if (water_low) return STATUS_WATER;
   if (food_low) return STATUS_FOOD;
 
-  if (g_bio.stress >= STRESS_HIGH) return STATUS_STRESS;
+  if (g_bio.stress_high) return STATUS_STRESS;
+  if (g_bio.energy >= 0 && g_bio.energy < ENERGY_LOW_PCT) return STATUS_DRAINED;
+  if (g_bio.worn_down) return STATUS_WORN_DOWN;
   if (g_bio.calibrating) return STATUS_CALIBRATING;
+  if (g_bio.hr < 0 && g_bio.stress < 0) return STATUS_NO_DATA;
   return STATUS_OK;
 }
 
-// Stress turned upside down, so it can be drawn as the health bar every game HUD has.
+// The energy meter, drawn as the health bar every game HUD has.
 int bio_vitality(void) {
-  return g_bio.stress < 0 ? -1 : 100 - g_bio.stress;
+  return g_bio.energy;
 }
 
 void draw_text(GContext *ctx, const char *text, GFont font, GRect box, GTextAlignment align,

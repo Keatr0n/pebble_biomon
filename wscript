@@ -43,12 +43,16 @@ def build(ctx):
         if os.environ.get('BIOMON_DEMO'):
             ctx.env.append_value('DEFINES', 'BIOMON_DEMO=' + os.environ['BIOMON_DEMO'])
         app_elf = '{}/pebble-app.elf'.format(ctx.env.BUILD_DIR)
-        ctx.pbl_program(source=ctx.path.ant_glob('src/c/**/*.c'), target=app_elf)
+        # shared/ holds the measuring logic that both the app and its background worker run.
+        shared = ctx.path.ant_glob('shared/**/*.c')
+        ctx.pbl_program(source=ctx.path.ant_glob('src/c/**/*.c') + shared, includes=['shared'],
+                        target=app_elf)
 
         if build_worker:
             worker_elf = '{}/pebble-worker.elf'.format(ctx.env.BUILD_DIR)
             binaries.append({'platform': p, 'app_elf': app_elf, 'worker_elf': worker_elf})
-            ctx.pbl_worker(source=ctx.path.ant_glob('worker_src/c/**/*.c'), target=worker_elf)
+            ctx.pbl_worker(source=ctx.path.ant_glob('worker_src/c/**/*.c') + shared,
+                           includes=['shared'], defines=['BIOMON_WORKER'], target=worker_elf)
         else:
             binaries.append({'platform': p, 'app_elf': app_elf})
 

@@ -1,9 +1,5 @@
 #include "biomon.h"
-
-#define MOVING_STEPS_PER_MIN 5
-
-static int s_steps_last_tick = -1;
-static int s_steps_per_min = 0;
+#include "hrv_core.h"
 
 #if defined(PBL_HEALTH)
 static bool prv_accessible(HealthMetric metric, time_t start, time_t end) {
@@ -63,7 +59,11 @@ static void prv_health_handler(HealthEventType event, void *context) {
   // A burst of RR intervals arrives as several back-to-back events; none of them change
   // anything on screen until the measurement window closes.
   if (event == HealthEventHRVUpdate) {
-    hrv_on_event();
+    // Only does anything when the app is measuring for itself; see main.c.
+    if (hrv_core_on_event()) {
+      hrv_refresh();
+      ui_redraw();
+    }
     return;
   }
 #endif
@@ -113,25 +113,5 @@ void vitals_tick(void) {
   prv_update_steps();
   prv_update_sleep();
   prv_push_hr(g_bio.hr);
-
-  int steps = g_bio.steps > 0 ? g_bio.steps : 0;
-  // The count resets at midnight, which would otherwise read as a huge negative burst.
-  s_steps_per_min = (s_steps_last_tick >= 0 && steps >= s_steps_last_tick)
-                        ? steps - s_steps_last_tick
-                        : 0;
-  s_steps_last_tick = steps;
 #endif
-}
-
-bool vitals_is_asleep(void) {
-#if defined(PBL_HEALTH)
-  return health_service_peek_current_activities() &
-         (HealthActivitySleep | HealthActivityRestfulSleep);
-#else
-  return false;
-#endif
-}
-
-bool vitals_is_moving(void) {
-  return s_steps_per_min >= MOVING_STEPS_PER_MIN;
 }
