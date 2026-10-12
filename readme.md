@@ -29,14 +29,26 @@ The drain is uneven on purpose. Water falls from full to 50% in about two hours,
 
 The meters are timers, not measurements: they know what you've logged and how long ago, and nothing else. A low meter means it's been a while, or that you forgot to log.
 
-To log something, tap the meter, or press Up for water, Down for food, or Select for whichever is emptier once one has dropped below 50%. A panel opens where Up and Down (or the on-screen + and -) change the amount: water in cups (250 ml / 8.5 fl oz), food in steps of 500 kJ or 100 kcal. Select or Confirm logs it and Back cancels. Stepping below zero takes an entry back if you logged one by mistake. The panel also shows your running total for the day against your estimated requirement, marked with a ~ because it is an estimate. The requirement is left off until you've set your details in the settings, since until then it describes the defaults rather than you.
+To log something, press Select and pick from the menu. It's a short tree:
+
+- Food, then how big: nibble, snack, light meal, meal, big meal or feast, running from 400 to 5000 kJ (100 to 1200 kcal), each with an example to judge by
+- Drink, then what: water, coffee, tea, milky coffee, juice, soft drink or milk
+- then how much of it: small cup (150 ml), cup (250 ml), mug or can (375 ml), bottle (600 ml) or large bottle (1 litre)
+
+Up goes straight to the drinks and Down straight to the food, and so does tapping a meter. The lists can be scrolled and tapped by touch as well. Picking an amount logs it and returns to the HUD; Back goes up a level.
+
+Every drink counts in full towards water. The ones with energy in them (milky coffee, juice, soft drink and milk) add to food as well, so a cup of juice moves both meters.
+
+After you've logged something the top of the menu has an Undo last row, which takes the most recent entry back. It stays until the day's totals reset.
+
+The menu also shows your running total for the day against your estimated requirement, marked with a ~ because it is an estimate. The requirement is left off until you've set your details in the settings, since until then it describes the defaults rather than you.
 
 A cup or a meal always refills the same slice of bar. The size of that slice comes from the sex, age, weight and height in the settings:
 
 - Water to drink is 80% of 31-35 ml per kg of body weight, the rest being what arrives in food, and is kept between 1.5 and 3.5 litres whatever the weight.
 - Energy is the Mifflin-St Jeor resting figure times 1.2, plus what the watch counts you burning in activity on a typical day. Until the watch has that history it uses a flat 1.4 instead.
 
-It's scaled so that getting through a normal day's worth keeps both meters in their top half. For a 75 kg person a cup is about half of the water bar and a 2000 kJ meal a bit over 40% of the food bar.
+It's scaled so that getting through a normal day's worth keeps both meters in their top half. For a 75 kg person a cup is about half of the water bar and a 2500 kJ meal a bit over half of the food bar.
 
 A big meal isn't wasted on a full bar. The meters carry on filling out of sight, food up to a whole day's worth and water up to half a bar extra, so the bar stays full for longer before it starts to fall. Once the day's total reaches your requirement the reminders stop until tomorrow, even if a meter runs low.
 
@@ -46,7 +58,7 @@ Nothing drains or buzzes during quiet hours (22:00 to 07:00 by default), and not
 
 PebbleOS gives watch faces no buttons and no touch, which leaves shaking your wrist as the only way to log anything. So Biomon is a watchapp with a background worker.
 
-The worker keeps running after you leave the app. It takes the HRV readings, keeps the baselines up to date, moves the energy meter and watches the water and food meters. A worker can't vibrate or draw, so when a meter drops under 50% it opens the app, which buzzes and shows the log panel. Log it or dismiss it and the app closes again, leaving you back on your watch face.
+The worker keeps running after you leave the app. It takes the HRV readings, keeps the baselines up to date, moves the energy meter and watches the water and food meters. A worker can't vibrate or draw, so when a meter drops under 50% it opens the app, which buzzes. Nothing pops up over the HUD: the low meter and the status line say what it's after, and the app stays open until you leave it.
 
 Only one app's worker can run at a time across the whole watch. If another app's worker has the slot, Biomon still measures and reminds, but only while it's open. The energy meter catches up from the watch's health log the next time it is.
 
@@ -93,4 +105,4 @@ pebble build
 pebble install --emulator emery
 ```
 
-`BIOMON_DEMO=1 pebble build` fills the face with canned readings for screenshots, since the emulator can't produce HRV. `BIOMON_DEMO=2` does the same with everything in the red, and `3` / `4` open the water / food log panel.
+`BIOMON_DEMO=1 pebble build` fills the face with canned readings for screenshots, since the emulator can't produce HRV. `BIOMON_DEMO=2` does the same with everything in the red, and `3` / `4` open the log menu at drinks / food.

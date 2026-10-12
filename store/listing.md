@@ -15,7 +15,7 @@ Biomon turns your watch into a biomonitor. It reads your heart rate and HRV, wor
 - Energy bar that recharges while you sleep and drains with activity and stress
 - Stress scored against your own HRV baseline, not a population average
 - Water and food meters that drain through the day and buzz you when they run low
-- Log a drink or a meal with one button, or tap the meter
+- Log food and drink from a short menu: a meal size, or a cup or bottle of water, coffee, tea, juice and more
 - Quiet hours, metric or imperial units, kJ or kcal
 - Every setting is on the watch: hold Select to open the menu, no phone needed
 - Keeps measuring in the background after you leave the app

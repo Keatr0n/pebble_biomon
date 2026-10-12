@@ -3,7 +3,6 @@
 #include "hrv_core.h"
 
 Bio g_bio;
-GFont g_font_chakra_time;
 GFont g_font_chakra_label;
 
 #define TAP_MAX_TRAVEL 16  // Further than this between finger down and up is a swipe
@@ -13,12 +12,9 @@ static Layer *s_canvas;
 
 #if defined(BIOMON_DEMO)
 // Canned readings for emulator screenshots: 1 is a good day, 2 has everything going
-// wrong, 3 and 4 are a good day with the water or food log panel open.
+// wrong, 3 and 4 are a good day with the log menu open at drinks or at food.
 static void prv_apply_demo(void) {
   bool bad = BIOMON_DEMO == 2;
-  if (BIOMON_DEMO == 3) g_bio.panel = NEED_WATER;
-  if (BIOMON_DEMO == 4) g_bio.panel = NEED_FOOD;
-  if (BIOMON_DEMO >= 3 && g_bio.panel_count == 0) g_bio.panel_count = 2;
   g_bio.hr = bad ? 104 : 64;
   g_bio.hrv = bad ? 19 : 52;
   g_bio.stress = bad ? 84 : 18;
@@ -52,7 +48,6 @@ static void prv_canvas_update(Layer *layer, GContext *ctx) {
     case THEME_SUBNAUTICA:
     default: theme_subnautica_draw(ctx, bounds); break;
   }
-  needs_panel_draw(ctx, bounds);
 }
 
 static void prv_update_clock(struct tm *tick_time) {
@@ -91,7 +86,7 @@ static void prv_worker_message_handler(uint16_t type, AppWorkerMessage *data) {
     hrv_refresh();
     ui_redraw();
   } else if (type == WORKER_MSG_ALERT) {
-    needs_show_pending_alert(false);
+    needs_show_pending_alert();
   }
 }
 
@@ -101,31 +96,38 @@ static void prv_battery_handler(BatteryChargeState state) {
   ui_redraw();
 }
 
+// Select opens the log menu at the top; Up and Down are shortcuts into its two branches.
 static void prv_click_handler(ClickRecognizerRef recognizer, void *context) {
-  if (!needs_button(click_recognizer_get_button_id(recognizer))) window_stack_pop(true);
+  switch (click_recognizer_get_button_id(recognizer)) {
+    case BUTTON_ID_UP: log_menu_show(NEED_WATER); break;
+    case BUTTON_ID_DOWN: log_menu_show(NEED_FOOD); break;
+    default: log_menu_show(NEED_NONE); break;
+  }
 }
 
 static void prv_long_select_handler(ClickRecognizerRef recognizer, void *context) {
-  if (g_bio.panel == NEED_NONE) settings_menu_show();
+  settings_menu_show();
 }
 
 static void prv_click_config_provider(void *context) {
   window_single_click_subscribe(BUTTON_ID_UP, prv_click_handler);
   window_single_click_subscribe(BUTTON_ID_SELECT, prv_click_handler);
   window_single_click_subscribe(BUTTON_ID_DOWN, prv_click_handler);
-  window_single_click_subscribe(BUTTON_ID_BACK, prv_click_handler);
   window_long_click_subscribe(BUTTON_ID_SELECT, 0, prv_long_select_handler, NULL);
 }
 
 #if defined(BIOMON_HAS_TOUCH)
 static void prv_touch_handler(const TouchEvent *event, void *context) {
   static GPoint s_down;
-  // Touches keep arriving while the settings menu covers the HUD.
-  if (window_stack_get_top_window() != s_window) return;
+  static bool s_on_hud;
 
   if (event->type == TouchEvent_Touchdown) {
+    // Touches keep arriving while a menu covers the HUD. One that picks a row there can
+    // close the menu before the finger lifts, so it's where a touch began that counts.
+    s_on_hud = window_stack_get_top_window() == s_window;
     s_down = GPoint(event->x, event->y);
-  } else if (event->type == TouchEvent_Liftoff) {
+  } else if (event->type == TouchEvent_Liftoff && s_on_hud) {
+    s_on_hud = false;
     int dx = event->x - s_down.x;
     int dy = event->y - s_down.y;
     if (dx * dx + dy * dy <= TAP_MAX_TRAVEL * TAP_MAX_TRAVEL) needs_tap(s_down);
@@ -135,7 +137,6 @@ static void prv_touch_handler(const TouchEvent *event, void *context) {
 
 static void prv_window_load(Window *window) {
   Layer *root = window_get_root_layer(window);
-  g_font_chakra_time = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_CHAKRA_TIME_52));
   g_font_chakra_label =
       fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_CHAKRA_LABEL_16));
 
@@ -147,7 +148,6 @@ static void prv_window_load(Window *window) {
 static void prv_window_unload(Window *window) {
   layer_destroy(s_canvas);
   s_canvas = NULL;
-  fonts_unload_custom_font(g_font_chakra_time);
   fonts_unload_custom_font(g_font_chakra_label);
 }
 
@@ -178,10 +178,18 @@ static void prv_init(void) {
 #if defined(BIOMON_HAS_TOUCH)
   touch_service_subscribe(prv_touch_handler, NULL);
 #endif
+#if defined(BIOMON_HAS_TOUCH_NAV)
+  // Lets the menus be scrolled and their rows tapped.
+  app_touch_navigation_enable(true);
+#endif
 
-  // If the worker opened the app to deliver a reminder, show it and leave again after.
-  needs_show_pending_alert(launch_reason() == APP_LAUNCH_WORKER);
+  // The worker may have opened the app because a meter ran low.
+  needs_show_pending_alert();
   ui_redraw();
+#if defined(BIOMON_DEMO)
+  if (BIOMON_DEMO == 3) log_menu_show(NEED_WATER);
+  if (BIOMON_DEMO == 4) log_menu_show(NEED_FOOD);
+#endif
 }
 
 static void prv_deinit(void) {

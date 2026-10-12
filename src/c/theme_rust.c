@@ -17,10 +17,10 @@
 #define BELT_SLOTS 5
 #define ICON_COLUMN_W 22
 
+#define RULE_GAP 6
+
 typedef struct {
-  int16_t date_y;
-  int16_t date_rule_inset;
-  int16_t time_y;
+  GRect clock;     // The date at one end, the time at the other and a rule between
   GRect status;
   GRect bars;      // Height is one row
   int16_t bar_gap;
@@ -30,17 +30,17 @@ typedef struct {
 
 #if defined(PBL_ROUND)
 static const RustLayout LAYOUT = {
-  .date_y = 16, .date_rule_inset = 66, .time_y = 28,
-  .status = { { 40, 92 }, { 180, 20 } },
-  .bars = { { 34, 116 }, { 192, 20 } }, .bar_gap = 3,
-  .slot = { { 44, 188 }, { 33, 36 } }, .slot_gap = 2
+  .clock = { { 52, 24 }, { 156, 22 } },
+  .status = { { 34, 52 }, { 192, 22 } },
+  .bars = { { 24, 80 }, { 212, 28 } }, .bar_gap = 4,
+  .slot = { { 44, 178 }, { 33, 40 } }, .slot_gap = 2
 };
 #else
 static const RustLayout LAYOUT = {
-  .date_y = 0, .date_rule_inset = 8, .time_y = 14,
-  .status = { { 6, 76 }, { 188, 20 } },
-  .bars = { { 6, 100 }, { 188, 22 } }, .bar_gap = 3,
-  .slot = { { 6, 178 }, { 36, 44 } }, .slot_gap = 2
+  .clock = { { 8, 0 }, { 184, 22 } },
+  .status = { { 6, 28 }, { 188, 22 } },
+  .bars = { { 6, 56 }, { 188, 34 } }, .bar_gap = 4,
+  .slot = { { 6, 172 }, { 36, 50 } }, .slot_gap = 2
 };
 #endif
 
@@ -101,8 +101,8 @@ static void prv_status(GContext *ctx) {
   graphics_context_set_fill_color(ctx, color);
   graphics_fill_rect(ctx, box, 0, GCornerNone);
 
-  GFont font = fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD);
-  GRect text = GRect(box.origin.x + 6, box.origin.y, box.size.w - 12, box.size.h);
+  GFont font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+  GRect text = GRect(box.origin.x + 6, box.origin.y - 3, box.size.w - 12, box.size.h);
   draw_text(ctx, label, font, text, GTextAlignmentLeft, RUST_TEXT);
   draw_text(ctx, s_value, font, text, GTextAlignmentRight, RUST_TEXT);
 }
@@ -127,8 +127,8 @@ static void prv_vital_row(GContext *ctx, int index, Icon icon, int pct, GColor f
 
   char value[8];
   fmt_value(value, sizeof(value), pct);
-  draw_text(ctx, value, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-            GRect(bar.origin.x + 5, bar.origin.y + (bar.size.h - 18) / 2 - 4, 60, 22),
+  draw_text(ctx, value, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
+            GRect(bar.origin.x + 5, bar.origin.y + (bar.size.h - 24) / 2 - 5, 60, 28),
             GTextAlignmentLeft, RUST_TEXT);
 }
 
@@ -154,18 +154,19 @@ void theme_rust_draw(GContext *ctx, GRect bounds) {
   graphics_context_set_fill_color(ctx, RUST_BG);
   graphics_fill_rect(ctx, bounds, 0, GCornerNone);
 
-  int rule_y = LAYOUT.date_y + 14;
-  int rule_w = bounds.size.w / 2 - LAYOUT.date_rule_inset - 50;
+  GRect clock = LAYOUT.clock;
+  GFont clock_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+  int date_w = graphics_text_layout_get_content_size(
+      g_bio.date, clock_font, clock, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft).w;
+  int time_w = graphics_text_layout_get_content_size(
+      g_bio.time, clock_font, clock, GTextOverflowModeTrailingEllipsis, GTextAlignmentLeft).w;
+  int rule_y = clock.origin.y + 14;
+  draw_text(ctx, g_bio.date, clock_font, clock, GTextAlignmentLeft, RUST_DIM);
+  draw_text(ctx, g_bio.time, clock_font, clock, GTextAlignmentRight, RUST_TEXT);
   graphics_context_set_stroke_color(ctx, RUST_PANEL);
   graphics_context_set_stroke_width(ctx, 1);
-  graphics_draw_line(ctx, GPoint(LAYOUT.date_rule_inset, rule_y),
-                     GPoint(LAYOUT.date_rule_inset + rule_w, rule_y));
-  graphics_draw_line(ctx, GPoint(bounds.size.w - LAYOUT.date_rule_inset - rule_w, rule_y),
-                     GPoint(bounds.size.w - LAYOUT.date_rule_inset, rule_y));
-  draw_text(ctx, g_bio.date, fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD),
-            GRect(0, LAYOUT.date_y, bounds.size.w, 22), GTextAlignmentCenter, RUST_DIM);
-  draw_text(ctx, g_bio.time, fonts_get_system_font(FONT_KEY_ROBOTO_BOLD_SUBSET_49),
-            GRect(0, LAYOUT.time_y, bounds.size.w, 56), GTextAlignmentCenter, RUST_TEXT);
+  graphics_draw_line(ctx, GPoint(clock.origin.x + date_w + RULE_GAP, rule_y),
+                     GPoint(clock.origin.x + clock.size.w - time_w - RULE_GAP, rule_y));
 
   prv_status(ctx);
   prv_vital_row(ctx, 0, ICON_CROSS, bio_vitality(), RUST_HEALTH);

@@ -22,35 +22,10 @@
 
 #define PULSE_MIN_BPM 40
 #define PULSE_MAX_BPM 180
-#define PILL_W 100
+#define PILL_W 140
 #define PILL_H 18
-#define PULSE_R 38
-#define GAUGE_R 21
 #define BACKING_PAD 5
 #define READOUTS 4
-
-typedef struct {
-  int16_t pill_y;
-  int16_t time_y;
-  int16_t status_y;
-  GPoint pulse;
-  GRect readout;     // The first of the stacked readouts
-  int16_t readout_step;
-} SubLayout;
-
-#if defined(PBL_ROUND)
-static const SubLayout LAYOUT = {
-  .pill_y = 18, .time_y = 30, .status_y = 80,
-  .pulse = { 119, 146 },
-  .readout = { { 166, 108 }, { 58, 26 } }, .readout_step = 26
-};
-#else
-static const SubLayout LAYOUT = {
-  .pill_y = 4, .time_y = 16, .status_y = 67,
-  .pulse = { 100, 130 },
-  .readout = { { 146, 92 }, { 52, 28 } }, .readout_step = 28
-};
-#endif
 
 typedef enum {
   GAUGE_HEALTH = 0,
@@ -59,12 +34,40 @@ typedef enum {
   GAUGE_COUNT
 } Gauge;
 
-// Where each small gauge sits relative to the large one, tracing the same arc the game's
-// cluster does: level with it, below-left, and underneath.
-static const GPoint GAUGE_OFFSET[GAUGE_COUNT] = { { -71, 1 }, { -51, 49 }, { -5, 70 } };
+typedef struct {
+  int16_t pill_y;
+  int16_t status_y;
+  GPoint pulse;
+  int16_t pulse_r;
+  int16_t pulse_ring;
+  int16_t gauge_r;
+  int16_t gauge_ring;
+  // Where each small gauge sits relative to the large one, tracing the same arc the
+  // game's cluster does: level with it, below-left, and underneath.
+  GPoint gauge_offset[GAUGE_COUNT];
+  GRect readout;     // The first of the stacked readouts
+  int16_t readout_step;
+} SubLayout;
+
+#if defined(PBL_ROUND)
+static const SubLayout LAYOUT = {
+  .pill_y = 24, .status_y = 46,
+  .pulse = { 118, 121 }, .pulse_r = 46, .pulse_ring = 12, .gauge_r = 25, .gauge_ring = 8,
+  .gauge_offset = { { -85, 1 }, { -61, 59 }, { -6, 84 } },
+  .readout = { { 176, 80 }, { 60, 28 } }, .readout_step = 28
+};
+#else
+static const SubLayout LAYOUT = {
+  .pill_y = 4, .status_y = 26,
+  .pulse = { 100, 113 }, .pulse_r = 38, .pulse_ring = 10, .gauge_r = 21, .gauge_ring = 7,
+  .gauge_offset = { { -71, 1 }, { -51, 49 }, { -5, 70 } },
+  .readout = { { 146, 62 }, { 52, 28 } }, .readout_step = 40
+};
+#endif
 
 static GPoint prv_gauge_center(Gauge gauge) {
-  return GPoint(LAYOUT.pulse.x + GAUGE_OFFSET[gauge].x, LAYOUT.pulse.y + GAUGE_OFFSET[gauge].y);
+  return GPoint(LAYOUT.pulse.x + LAYOUT.gauge_offset[gauge].x,
+                LAYOUT.pulse.y + LAYOUT.gauge_offset[gauge].y);
 }
 
 static const char *prv_status_text(GColor *color) {
@@ -99,12 +102,13 @@ static void prv_disc(GContext *ctx, GPoint center, int radius, GColor color) {
 static void prv_gauge(GContext *ctx, Gauge gauge, Icon icon, int pct, GColor color,
                       GColor track) {
   GPoint center = prv_gauge_center(gauge);
+  int radius = LAYOUT.gauge_r;
   bool critical = pct >= 0 && pct < NEED_CRITICAL_PCT;
 
   // A gauge in trouble gets a warning halo; otherwise the same thin rim as the big one.
-  prv_disc(ctx, center, GAUGE_R, critical ? SUB_WARN : SUB_RIM);
-  draw_ring(ctx, center, GAUGE_R - 2, 7, pct, color, track);
-  prv_disc(ctx, center, GAUGE_R - 9, SUB_BACKING);
+  prv_disc(ctx, center, radius, critical ? SUB_WARN : SUB_RIM);
+  draw_ring(ctx, center, radius - 2, LAYOUT.gauge_ring, pct, color, track);
+  prv_disc(ctx, center, radius - 2 - LAYOUT.gauge_ring, SUB_BACKING);
   draw_icon(ctx, icon, GPoint(center.x - ICON_SIZE / 2, center.y - ICON_SIZE / 2), SUB_TEXT);
 }
 
@@ -121,7 +125,8 @@ static void prv_readout(GContext *ctx, int index, const char *label, const char 
 
 GRect theme_subnautica_need_rect(Need need) {
   GPoint center = prv_gauge_center(need == NEED_WATER ? GAUGE_WATER : GAUGE_FOOD);
-  return GRect(center.x - GAUGE_R, center.y - GAUGE_R, GAUGE_R * 2, GAUGE_R * 2);
+  int radius = LAYOUT.gauge_r;
+  return GRect(center.x - radius, center.y - radius, radius * 2, radius * 2);
 }
 
 void theme_subnautica_draw(GContext *ctx, GRect bounds) {
@@ -137,11 +142,10 @@ void theme_subnautica_draw(GContext *ctx, GRect bounds) {
   graphics_context_set_stroke_color(ctx, SUB_RIM);
   graphics_context_set_stroke_width(ctx, 1);
   graphics_draw_round_rect(ctx, pill, PILL_H / 2);
-  draw_text(ctx, g_bio.date, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD),
+  char clock[sizeof(g_bio.date) + sizeof(g_bio.time) + 2];
+  snprintf(clock, sizeof(clock), "%s  %s", g_bio.date, g_bio.time);
+  draw_text(ctx, clock, fonts_get_system_font(FONT_KEY_GOTHIC_14_BOLD),
             GRect(pill.origin.x, pill.origin.y - 1, PILL_W, 16), GTextAlignmentCenter, SUB_TEXT);
-
-  draw_text(ctx, g_bio.time, fonts_get_system_font(FONT_KEY_BITHAM_42_MEDIUM_NUMBERS),
-            GRect(0, LAYOUT.time_y, width, 46), GTextAlignmentCenter, SUB_TEXT);
 
   GColor status_color;
   const char *status = prv_status_text(&status_color);
@@ -152,24 +156,27 @@ void theme_subnautica_draw(GContext *ctx, GRect bounds) {
 
   // The backing is just a larger dark disc behind every gauge; they're spaced so the
   // discs touch and read as a single blob.
-  prv_disc(ctx, LAYOUT.pulse, PULSE_R + BACKING_PAD + 1, SUB_BACKING);
+  int pulse_r = LAYOUT.pulse_r;
+  prv_disc(ctx, LAYOUT.pulse, pulse_r + BACKING_PAD + 1, SUB_BACKING);
   for (int i = 0; i < GAUGE_COUNT; i++) {
-    prv_disc(ctx, prv_gauge_center(i), GAUGE_R + BACKING_PAD, SUB_BACKING);
+    prv_disc(ctx, prv_gauge_center(i), LAYOUT.gauge_r + BACKING_PAD, SUB_BACKING);
   }
 
   int pulse_pct = g_bio.hr < 0 ? 0
       : ((g_bio.hr - PULSE_MIN_BPM) * 100) / (PULSE_MAX_BPM - PULSE_MIN_BPM);
-  prv_disc(ctx, LAYOUT.pulse, PULSE_R, SUB_RIM);
-  draw_ring(ctx, LAYOUT.pulse, PULSE_R - 2, 10, pulse_pct, SUB_PULSE, SUB_PULSE_TRACK);
-  prv_disc(ctx, LAYOUT.pulse, PULSE_R - 12, SUB_RIM);
-  prv_disc(ctx, LAYOUT.pulse, PULSE_R - 13, SUB_CORE);
+  int core_r = pulse_r - 2 - LAYOUT.pulse_ring;
+  prv_disc(ctx, LAYOUT.pulse, pulse_r, SUB_RIM);
+  draw_ring(ctx, LAYOUT.pulse, pulse_r - 2, LAYOUT.pulse_ring, pulse_pct, SUB_PULSE,
+            SUB_PULSE_TRACK);
+  prv_disc(ctx, LAYOUT.pulse, core_r, SUB_RIM);
+  prv_disc(ctx, LAYOUT.pulse, core_r - 1, SUB_CORE);
   char value[16];
   fmt_value(value, sizeof(value), g_bio.hr);
   draw_text(ctx, "BPM", fonts_get_system_font(FONT_KEY_GOTHIC_14),
-            GRect(LAYOUT.pulse.x - PULSE_R, LAYOUT.pulse.y - 24, PULSE_R * 2, 16),
+            GRect(LAYOUT.pulse.x - pulse_r, LAYOUT.pulse.y - 24, pulse_r * 2, 16),
             GTextAlignmentCenter, SUB_TEXT);
   draw_text(ctx, value, fonts_get_system_font(FONT_KEY_GOTHIC_24_BOLD),
-            GRect(LAYOUT.pulse.x - PULSE_R, LAYOUT.pulse.y - 13, PULSE_R * 2, 28),
+            GRect(LAYOUT.pulse.x - pulse_r, LAYOUT.pulse.y - 13, pulse_r * 2, 28),
             GTextAlignmentCenter, SUB_TEXT);
 
   prv_gauge(ctx, GAUGE_HEALTH, ICON_HEART, bio_vitality(), SUB_HEALTH, SUB_HEALTH_TRACK);

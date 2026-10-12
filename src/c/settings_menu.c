@@ -303,9 +303,3 @@ void settings_menu_show(void) {
   });
   window_stack_push(s_window, true);
 }
-
-void settings_menu_hide(void) {
-  if (!s_window) return;
-  window_stack_remove(number_window_get_window(s_number), false);
-  window_stack_remove(s_window, false);
-}

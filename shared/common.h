@@ -17,12 +17,16 @@
 #if defined(_PBL_API_EXISTS_touch_service_subscribe)
 #define BIOMON_HAS_TOUCH 1
 #endif
+#if defined(_PBL_API_EXISTS_app_touch_navigation_enable)
+#define BIOMON_HAS_TOUCH_NAV 1
+#endif
 
 #define PERSIST_KEY_SETTINGS 1
 #define PERSIST_KEY_HRV 3
 #define PERSIST_KEY_NEEDS 6
 #define PERSIST_KEY_NAG 7
 #define PERSIST_KEY_ENERGY 8
+#define PERSIST_KEY_LAST_LOG 9
 
 #define NEED_PROMPT_PCT 50    // Below this a meter asks to be topped up
 #define NEED_CRITICAL_PCT 25  // Below this it's drawn as an emergency

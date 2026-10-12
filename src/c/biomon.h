@@ -35,15 +35,12 @@ typedef struct {
   int sleep_min;
   int battery;
   bool charging;
-  Need panel;       // Which meter the log panel is open for
-  int panel_count;  // Cups or food portions it's about to log; negative takes them back
   uint8_t hr_hist[HR_HIST_LEN];
   int hr_hist_len;
 } Bio;
 
 extern Settings g_settings;
 extern Bio g_bio;
-extern GFont g_font_chakra_time;
 extern GFont g_font_chakra_label;
 
 // main.c
@@ -55,7 +52,6 @@ void settings_save(void);
 
 // settings_menu.c
 void settings_menu_show(void);
-void settings_menu_hide(void);
 
 // vitals.c
 void vitals_init(void);
@@ -67,15 +63,29 @@ void hrv_refresh(void);
 void hrv_reset_baseline(void);
 
 // needs.c
+// What one pick from the log menu adds. A drink can carry energy as well as water.
+typedef struct {
+  int32_t water_ml;
+  int32_t food_dkj;  // Tenths of a kJ
+} LogEntry;
+
 void needs_init(void);
 void needs_deinit(void);
 // own_reminders: check for reminders here, because no worker is running to do it.
 void needs_tick(time_t now, bool own_reminders);
-void needs_show_pending_alert(bool exit_when_done);
+// Buzzes for a reminder the worker has left waiting, if there is one.
+void needs_show_pending_alert(void);
 void needs_tap(GPoint point);
-// Returns false if the press wasn't used, so Back can fall through to leaving the app.
-bool needs_button(ButtonId button);
-void needs_panel_draw(GContext *ctx, GRect bounds);
+void needs_log(LogEntry entry);
+// The last thing logged today, or false if there's nothing that can be taken back.
+bool needs_last_entry(LogEntry *entry);
+void needs_undo(void);
+// The day's running total: ml of water, or tenths of a kJ of food.
+int32_t needs_today(Need need);
+
+// log_menu.c
+// Opens the log menu at a need's branch, or at the top of the tree for NEED_NONE.
+void log_menu_show(Need need);
 
 // draw.c
 #define ICON_SIZE 11

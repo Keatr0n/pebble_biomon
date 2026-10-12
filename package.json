@@ -20,13 +20,6 @@
           "type": "bitmap"
         },
         {
-          "characterRegex": "[0-9:]",
-          "file": "fonts/ChakraPetch-SemiBold.ttf",
-          "name": "FONT_CHAKRA_TIME_52",
-          "targetPlatforms": null,
-          "type": "font"
-        },
-        {
           "characterRegex": "[A-Z0-9 :/.%!+-]",
           "file": "fonts/ChakraPetch-SemiBold.ttf",
           "name": "FONT_CHAKRA_LABEL_16",
